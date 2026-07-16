@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: products-api
+  template:
+    metadata:
+      labels:
+        app: products-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: products-api
+          image: widgetario/products-api:21.03
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+          startupProbe:
+            httpGet:
+              path: /actuator/prometheus
+              port: 80
+            failureThreshold: 60
+            periodSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: /actuator/prometheus
+              port: 80
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/prometheus
+              port: 80
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 384Mi
+            limits:
+              cpu: 1000m
+              memory: 768Mi
+      volumes:
+        - name: config
+          configMap:
+            name: products-api-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-api
+spec:
+  selector:
+    app: products-api
+  ports:
+    - port: 80
+      targetPort: 80

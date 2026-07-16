@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: widgetario-web
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: widgetario.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: widgetario-api
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.widgetario.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: products-api
+                port:
+                  number: 80
